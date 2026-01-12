@@ -24,7 +24,7 @@ const Login = () => {
 
     try {
       await login(formData);
-      navigate("/gigs");
+      navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     } finally {

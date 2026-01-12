@@ -38,7 +38,7 @@ const BrowseGigs = () => {
   }, []);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="pt-20 p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Browse Gigs</h1>
 
       <form onSubmit={handleSearch} className="mb-6 flex gap-2">
