@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useEffect } from "react";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -12,12 +13,25 @@ import GigDetails from "./pages/GigDetails";
 import Dashboard from "./pages/Dashboard";
 import MyBids from "./pages/MyBids";
 import MyGigs from "./pages/MyGigs";
-
+import socket from "./services/socket";
+import { NotificationProvider } from "./context/NotificationContext";
 
 
 function App() {
+
+  useEffect(() => {
+    socket.on("hired", (data) => {
+      alert(data.message);
+    });
+
+    return () => {
+      socket.off("hired");
+    };
+  }, []);
+
   return (
     <AuthProvider>
+      <NotificationProvider>
       <Router>
         <Navbar />
         <Routes>
@@ -62,10 +76,9 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-
         </Routes>
       </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

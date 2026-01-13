@@ -1,6 +1,11 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Alert from "../components/ui/Alert";
+import Card from "../components/ui/Card";
+
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -10,66 +15,111 @@ const Login = () => {
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.password) newErrors.password = "Password is required";
+    return newErrors;
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
-    setError("");
+    setApiError("");
 
     try {
       await login(formData);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setApiError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50 flex items-center justify-center px-6 pt-20 pb-10">
+      <Card shadow="lg" padding="lg" className="w-full max-w-md">
+        
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <p className="text-gray-600">Sign in to your GigFlow account</p>
+        </div>
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        
+        {apiError && (
+          <Alert
+            type="error"
+            title="Login Failed"
+            message={apiError}
+            onClose={() => setApiError("")}
+            closable
+          />
+        )}
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          className="w-full mb-4 p-2 border rounded"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          className="w-full mb-4 p-2 border rounded"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-5 mt-6">
+          <Input
+            id="email"
+            label="Email Address"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            value={formData.email}
+            onChange={handleChange}
+            error={errors.email}
+            required
+            disabled={loading}
+          />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+          <Input
+            id="password"
+            label="Password"
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleChange}
+            error={errors.password}
+            required
+            disabled={loading}
+          />
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={loading}
+            disabled={loading}
+          >
+            Sign In
+          </Button>
+        </form>
+
+        {/* Footer */}
+        <p className="text-center text-gray-600 mt-6 text-sm">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-blue-600 font-semibold hover:text-blue-700">
+            Sign up here
+          </Link>
+        </p>
+      </Card>
     </div>
   );
 };

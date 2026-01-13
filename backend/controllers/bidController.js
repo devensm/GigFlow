@@ -1,14 +1,28 @@
 import mongoose from "mongoose";
 import Bid from "../models/Bid.js";
 import Gig from "../models/Gig.js";
+import { getIO, onlineUsers } from "../socket.js";
+import { isValidMessage, isValidPrice } from "../utils/validators.js";
 
-// Place a bid
+
 export const placeBid = async (req, res) => {
   try {
     const { gigId, message, price } = req.body;
 
     if (!gigId || !message || !price) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(gigId)) {
+      return res.status(400).json({ message: "Invalid gig ID" });
+    }
+
+    if (!isValidMessage(message)) {
+      return res.status(400).json({ message: "Message must be 5-1000 characters" });
+    }
+
+    if (!isValidPrice(price)) {
+      return res.status(400).json({ message: "Price must be a positive number" });
     }
 
     const gig = await Gig.findById(gigId);
@@ -39,7 +53,7 @@ export const placeBid = async (req, res) => {
   }
 };
 
-// Get all bids for a gig (owner only)
+// for owner of bid
 export const getBidsForGig = async (req, res) => {
   try {
     const { gigId } = req.params;
@@ -49,7 +63,7 @@ export const getBidsForGig = async (req, res) => {
       return res.status(404).json({ message: "Gig not found" });
     }
 
-    // Only owner can see bids
+    // to see the bids
     if (gig.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
@@ -84,27 +98,27 @@ export const hireBid = async (req, res) => {
       return res.status(404).json({ message: "Gig not found" });
     }
 
-    // Only owner can hire
+  
     if (gig.owner.toString() !== req.user._id.toString()) {
       await session.abortTransaction();
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    // Prevent double hiring
+    // double hirring
     if (gig.status === "assigned") {
       await session.abortTransaction();
       return res.status(400).json({ message: "Gig already assigned" });
     }
 
-    // Update gig
+    // update gig
     gig.status = "assigned";
     await gig.save({ session });
 
-    // Mark selected bid as hired
+    // changing the bid mark
     bid.status = "hired";
     await bid.save({ session });
 
-    // Reject all other bids
+  
     await Bid.updateMany(
       { gig: gig._id, _id: { $ne: bid._id } },
       { status: "rejected" },
@@ -114,6 +128,26 @@ export const hireBid = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
+    // socket integration
+    const freelancerId = bid.freelancer.toString();
+    const socketId = onlineUsers.get(freelancerId);
+    const io = getIO();
+
+    console.log("HIRE TRIGGERED");
+    console.log("Freelancer ID:", freelancerId);
+    console.log("Socket ID:", socketId);
+
+    if (socketId && io) {
+      io.to(socketId).emit("hired", {
+        message: `You have been hired for "${gig.title}"!`,
+        gigId: gig._id,
+      });
+
+ 
+    } else {
+      console.log(" No socket found for freelancer");
+    }
+
     res.json({ message: "Freelancer hired successfully" });
   } catch (error) {
     await session.abortTransaction();
@@ -122,7 +156,8 @@ export const hireBid = async (req, res) => {
   }
 };
 
-// Get all bids placed by logged-in user
+
+// all bids for log user
 export const getMyBids = async (req, res) => {
   try {
     const bids = await Bid.find({ freelancer: req.user._id })
@@ -135,7 +170,7 @@ export const getMyBids = async (req, res) => {
   }
 };
 
-// Update a bid (freelancer only)
+// bid update for user who are bidding
 export const updateBid = async (req, res) => {
   try {
     const { message, price } = req.body;
@@ -143,12 +178,12 @@ export const updateBid = async (req, res) => {
 
     if (!bid) return res.status(404).json({ message: "Bid not found" });
 
-    // Only freelancer can edit
+
     if (bid.freelancer.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    // Cannot edit after decision
+
     if (bid.status !== "pending") {
       return res.status(400).json({ message: "Cannot edit this bid anymore" });
     }
@@ -163,19 +198,19 @@ export const updateBid = async (req, res) => {
   }
 };
 
-// Delete a bid (freelancer only)
+
 export const deleteBid = async (req, res) => {
   try {
     const bid = await Bid.findById(req.params.id);
 
     if (!bid) return res.status(404).json({ message: "Bid not found" });
 
-    // Only freelancer can delete
+
     if (bid.freelancer.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    // Cannot delete after decision
+
     if (bid.status !== "pending") {
       return res.status(400).json({ message: "Cannot delete this bid anymore" });
     }

@@ -1,12 +1,24 @@
 import Gig from "../models/Gig.js";
+import { isValidTitle, isValidDescription, isValidBudget } from "../utils/validators.js";
 
-// Create a new gig
 export const createGig = async (req, res) => {
   try {
     const { title, description, budget } = req.body;
 
     if (!title || !description || !budget) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!isValidTitle(title)) {
+      return res.status(400).json({ message: "Title must be 3-100 characters" });
+    }
+
+    if (!isValidDescription(description)) {
+      return res.status(400).json({ message: "Description must be 10-2000 characters" });
+    }
+
+    if (!isValidBudget(budget)) {
+      return res.status(400).json({ message: "Budget must be a positive number" });
     }
 
     const gig = await Gig.create({
@@ -18,11 +30,12 @@ export const createGig = async (req, res) => {
 
     res.status(201).json(gig);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Create gig error:", error);
+    res.status(500).json({ message: "Failed to create gig" });
   }
 };
 
-// Get all open gigs
+
 export const getGigs = async (req, res) => {
   try {
     const gigs = await Gig.find({ status: "open" })
@@ -35,7 +48,7 @@ export const getGigs = async (req, res) => {
   }
 };
 
-// Search gigs by title
+
 export const searchGigs = async (req, res) => {
   try {
     const { q } = req.query;
@@ -51,7 +64,7 @@ export const searchGigs = async (req, res) => {
   }
 };
 
-// Get gig by ID
+
 export const getGigById = async (req, res) => {
   try {
     const gig = await Gig.findById(req.params.id).populate(
@@ -78,7 +91,7 @@ export const getMyGigs = async (req, res) => {
   }
 };
 
-// Delete a gig (owner only)
+
 export const deleteGig = async (req, res) => {
   try {
     const gig = await Gig.findById(req.params.id);
@@ -87,12 +100,11 @@ export const deleteGig = async (req, res) => {
       return res.status(404).json({ message: "Gig not found" });
     }
 
-    // Only owner can delete
     if (gig.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    // Optional: prevent deleting assigned gigs
+    
     if (gig.status === "assigned") {
       return res
         .status(400)

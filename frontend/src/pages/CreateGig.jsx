@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Alert from "../components/ui/Alert";
+import Card from "../components/ui/Card";
+
 
 const CreateGig = () => {
   const navigate = useNavigate();
@@ -10,83 +15,162 @@ const CreateGig = () => {
     description: "",
     budget: "",
   });
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.title) newErrors.title = "Title is required";
+    if (formData.title.length < 3) newErrors.title = "Title must be at least 3 characters";
+    if (!formData.description) newErrors.description = "Description is required";
+    if (formData.description.length < 10) newErrors.description = "Description must be at least 10 characters";
+    if (!formData.budget) newErrors.budget = "Budget is required";
+    if (isNaN(formData.budget) || formData.budget <= 0) newErrors.budget = "Budget must be a positive number";
+    return newErrors;
+  };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    setErrors({ ...errors, [name]: "" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setLoading(true);
-    setError("");
+    setApiError("");
     setSuccess("");
 
     try {
       await api.post("/gigs", formData);
-      setSuccess("Gig created successfully!");
+      setSuccess("Gig posted successfully! Redirecting...");
       setTimeout(() => {
         navigate("/gigs");
-      }, 1000);
+      }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create gig");
+      setApiError(err.response?.data?.message || "Failed to create gig");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 pt-20">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">Post a Gig</h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50 px-6 pt-20 pb-10">
+      <div className="max-w-2xl mx-auto">
+        <Card shadow="lg" padding="lg">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a Gig</h1>
+            <p className="text-gray-600">
+              Share what you need done and let freelancers bid on it
+            </p>
+          </div>
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        {success && <p className="text-green-600 mb-4">{success}</p>}
+          {/* Alerts */}
+          {apiError && (
+            <Alert
+              type="error"
+              title="Error"
+              message={apiError}
+              onClose={() => setApiError("")}
+              closable
+            />
+          )}
 
-        <input
-          type="text"
-          name="title"
-          placeholder="Gig Title"
-          className="w-full mb-4 p-2 border rounded"
-          value={formData.title}
-          onChange={handleChange}
-          required
-        />
+          {success && (
+            <Alert
+              type="success"
+              title="Success"
+              message={success}
+              closable={false}
+            />
+          )}
 
-        <textarea
-          name="description"
-          placeholder="Gig Description"
-          className="w-full mb-4 p-2 border rounded"
-          rows="4"
-          value={formData.description}
-          onChange={handleChange}
-          required
-        />
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input
+              id="title"
+              label="Gig Title"
+              type="text"
+              name="title"
+              placeholder="e.g., Build a React Dashboard"
+              value={formData.title}
+              onChange={handleChange}
+              error={errors.title}
+              required
+              disabled={loading}
+            />
 
-        <input
-          type="number"
-          name="budget"
-          placeholder="Budget"
-          className="w-full mb-4 p-2 border rounded"
-          value={formData.budget}
-          onChange={handleChange}
-          required
-        />
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                Description
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                placeholder="Describe what you need in detail..."
+                rows="6"
+                value={formData.description}
+                onChange={handleChange}
+                disabled={loading}
+                className={`
+                  w-full px-4 py-2.5 text-base font-normal
+                  border rounded-lg transition-colors duration-200
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                  disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed
+                  placeholder-gray-400
+                  ${
+                    errors.description
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }
+                  resize-none
+                `}
+                aria-invalid={!!errors.description}
+                aria-describedby={errors.description ? 'description-error' : undefined}
+              />
+              {errors.description && (
+                <p id="description-error" className="mt-2 text-sm text-red-600">
+                  {errors.description}
+                </p>
+              )}
+            </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-        >
-          {loading ? "Posting..." : "Post Gig"}
-        </button>
-      </form>
+            <Input
+              id="budget"
+              label="Budget (₹)"
+              type="number"
+              name="budget"
+              placeholder="1000"
+              value={formData.budget}
+              onChange={handleChange}
+              error={errors.budget}
+              required
+              disabled={loading}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={loading}
+              disabled={loading}
+            >
+              Post Gig
+            </Button>
+          </form>
+        </Card>
+      </div>
     </div>
   );
 };

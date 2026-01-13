@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
+import { isValidEmail, isValidName, isValidPassword } from "../utils/validators.js";
 
 // Register
 export const registerUser = async (req, res) => {
@@ -10,9 +11,21 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "All fields required" });
     }
 
+    if (!isValidName(name)) {
+      return res.status(400).json({ message: "Name must be 2-50 characters" });
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    if (!isValidPassword(password)) {
+      return res.status(400).json({ message: "Password must be 6+ chars with letters and numbers" });
+    }
+
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "Email already registered" });
     }
 
     const user = await User.create({ name, email, password });
@@ -25,7 +38,8 @@ export const registerUser = async (req, res) => {
       email: user.email,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Register error:", error);
+    res.status(500).json({ message: "Registration failed. Please try again." });
   }
 };
 
