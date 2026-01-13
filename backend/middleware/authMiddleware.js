@@ -2,7 +2,16 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const protect = async (req, res, next) => {
-  let token = req.cookies.jwt;
+  let token;
+
+  // Check Authorization header first (for cross-domain)
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+  // Fall back to cookie
+  else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
 
   if (!token) {
     return res.status(401).json({ message: "Not authorized, no token" });
