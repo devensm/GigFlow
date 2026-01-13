@@ -68,3 +68,12 @@ export const getGigById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getMyGigs = async (req, res) => {
+  try {
+    const gigs = await Gig.find({ owner: req.user._id }).sort({ createdAt: -1 });
+    res.json(gigs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

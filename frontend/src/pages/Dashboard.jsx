@@ -2,22 +2,37 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 
 const Dashboard = () => {
-  const [gigId, setGigId] = useState("");
+  const [gigs, setGigs] = useState([]);
+  const [selectedGig, setSelectedGig] = useState(null);
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const fetchBids = async () => {
-    if (!gigId) return;
+  useEffect(() => {
+    const fetchMyGigs = async () => {
+      try {
+        const res = await api.get("/gigs/my");
+        setGigs(res.data);
+      } catch (err) {
+        setError("Failed to load your gigs");
+      }
+    };
 
+    fetchMyGigs();
+  }, []);
+
+  const loadBids = async (gigId) => {
     try {
       setLoading(true);
       setError("");
+      setSuccess("");
+      setSelectedGig(gigId);
+
       const res = await api.get(`/bids/${gigId}`);
       setBids(res.data);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to load bids");
+      setError("Failed to load bids");
     } finally {
       setLoading(false);
     }
@@ -30,9 +45,9 @@ const Dashboard = () => {
       setSuccess("");
 
       await api.patch(`/bids/${bidId}/hire`);
-
       setSuccess("Freelancer hired successfully!");
-      fetchBids(); // refresh list
+
+      loadBids(selectedGig);
     } catch (err) {
       setError(err.response?.data?.message || "Hiring failed");
     } finally {
@@ -41,65 +56,102 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 pt-20">
-      <h1 className="text-2xl font-bold mb-4">Client Dashboard</h1>
+    <div className="pt-20 p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Client Dashboard</h1>
 
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Enter your Gig ID"
-          className="border p-2 rounded w-full"
-          value={gigId}
-          onChange={(e) => setGigId(e.target.value)}
-        />
-        <button
-          onClick={fetchBids}
-          className="mt-2 bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Load Bids
-        </button>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left: My Gigs */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">My Gigs</h2>
 
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-600">{error}</p>}
-      {success && <p className="text-green-600">{success}</p>}
+          {gigs.length === 0 && (
+            <p className="text-gray-500">You haven’t posted any gigs yet.</p>
+          )}
 
-      <div className="space-y-4">
-        {bids.map((bid) => (
-          <div
-            key={bid._id}
-            className="border p-4 rounded shadow flex justify-between items-center"
-          >
-            <div>
-              <p className="font-semibold">{bid.freelancer.name}</p>
-              <p className="text-gray-600">{bid.message}</p>
-              <p className="font-bold">₹{bid.price}</p>
-              <p className="text-sm mt-1">
-                Status:{" "}
-                <span
-                  className={
-                    bid.status === "hired"
-                      ? "text-green-600"
-                      : bid.status === "rejected"
-                      ? "text-red-600"
-                      : "text-gray-600"
-                  }
-                >
-                  {bid.status}
-                </span>
-              </p>
-            </div>
-
-            {bid.status === "pending" && (
-              <button
-                onClick={() => handleHire(bid._id)}
-                className="bg-green-600 text-white px-4 py-2 rounded"
+          <div className="space-y-3">
+            {gigs.map((gig) => (
+              <div
+                key={gig._id}
+                onClick={() => loadBids(gig._id)}
+                className={`border p-4 rounded cursor-pointer hover:bg-gray-50 ${
+                  selectedGig === gig._id ? "bg-gray-100" : ""
+                }`}
               >
-                Hire
-              </button>
-            )}
+                <h3 className="font-semibold">{gig.title}</h3>
+                <p className="text-sm text-gray-600">
+                  Budget: ₹{gig.budget}
+                </p>
+                <p className="text-sm">
+                  Status:{" "}
+                  <span
+                    className={
+                      gig.status === "assigned"
+                        ? "text-green-600"
+                        : "text-gray-600"
+                    }
+                  >
+                    {gig.status}
+                  </span>
+                </p>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Right: Bids */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Bids</h2>
+
+          {loading && <p>Loading...</p>}
+          {error && <p className="text-red-600">{error}</p>}
+          {success && <p className="text-green-600">{success}</p>}
+
+          {!selectedGig && (
+            <p className="text-gray-500">Select a gig to view bids.</p>
+          )}
+
+          {selectedGig && bids.length === 0 && !loading && (
+            <p className="text-gray-500">No bids yet.</p>
+          )}
+
+          <div className="space-y-3">
+            {bids.map((bid) => (
+              <div
+                key={bid._id}
+                className="border p-4 rounded shadow flex justify-between items-center"
+              >
+                <div>
+                  <p className="font-semibold">{bid.freelancer.name}</p>
+                  <p className="text-gray-600">{bid.message}</p>
+                  <p className="font-bold">₹{bid.price}</p>
+                  <p className="text-sm">
+                    Status:{" "}
+                    <span
+                      className={
+                        bid.status === "hired"
+                          ? "text-green-600"
+                          : bid.status === "rejected"
+                          ? "text-red-600"
+                          : "text-gray-600"
+                      }
+                    >
+                      {bid.status}
+                    </span>
+                  </p>
+                </div>
+
+                {bid.status === "pending" && (
+                  <button
+                    onClick={() => handleHire(bid._id)}
+                    className="bg-green-600 text-white px-4 py-2 rounded"
+                  >
+                    Hire
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

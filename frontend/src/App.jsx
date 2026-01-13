@@ -10,6 +10,10 @@ import BrowseGigs from "./pages/BrowseGigs";
 import CreateGig from "./pages/CreateGig";
 import GigDetails from "./pages/GigDetails";
 import Dashboard from "./pages/Dashboard";
+import MyBids from "./pages/MyBids";
+import MyGigs from "./pages/MyGigs";
+
+
 
 function App() {
   return (
@@ -40,6 +44,26 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/my-bids"
+            element={
+              <ProtectedRoute>
+                <MyBids />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/my-gigs"
+            element={
+              <ProtectedRoute>
+                <MyGigs />
+              </ProtectedRoute>
+            }
+          />
+
+
         </Routes>
       </Router>
     </AuthProvider>

@@ -4,6 +4,7 @@ import {
   getGigs,
   searchGigs,
   getGigById,
+  getMyGigs,
 } from "../controllers/gigController.js";
 import protect from "../middleware/authMiddleware.js";
 
@@ -12,6 +13,9 @@ const router = express.Router();
 router.post("/", protect, createGig);
 router.get("/", getGigs);
 router.get("/search", searchGigs);
+router.get("/my", protect, getMyGigs);
 router.get("/:id", getGigById);
+
+
 
 export default router;

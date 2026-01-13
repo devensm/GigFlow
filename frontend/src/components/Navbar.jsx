@@ -46,6 +46,25 @@ const Navbar = () => {
               Dashboard
             </button>
           )}
+
+          {user && (
+            <button
+                onClick={() => navigate("/my-bids")}
+                className="cursor-pointer hover:text-blue-600"
+            >
+                My Bids
+            </button>
+        )}
+
+        {user && (
+            <button
+                onClick={() => navigate("/my-gigs")}
+                className="cursor-pointer hover:text-blue-600"
+            >
+                My Gigs
+            </button>
+        )}
+
         </div>
 
         {/* Right: Auth */}
@@ -68,10 +87,13 @@ const Navbar = () => {
             </div>
           ) : (
             <button
-              onClick={logout}
-              className="text-red-500 cursor-pointer"
-            >
-              Logout
+                onClick={async () => {
+                    await logout();
+                    navigate("/login");
+                }}
+                className="text-red-500 cursor-pointer"
+                >
+                Logout
             </button>
           )}
         </div>

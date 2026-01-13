@@ -20,6 +20,12 @@ export const placeBid = async (req, res) => {
       return res.status(400).json({ message: "Gig is not open for bidding" });
     }
 
+    if (gig.owner.toString() === req.user._id.toString()) {
+      return res
+        .status(400)
+        .json({ message: "You cannot bid on your own gig" });
+    }
+
     const bid = await Bid.create({
       gig: gigId,
       freelancer: req.user._id,
@@ -115,3 +121,17 @@ export const hireBid = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get all bids placed by logged-in user
+export const getMyBids = async (req, res) => {
+  try {
+    const bids = await Bid.find({ freelancer: req.user._id })
+      .populate("gig", "title budget status")
+      .sort({ createdAt: -1 });
+
+    res.json(bids);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
