@@ -1,11 +1,6 @@
-/**
- * DESIGN SYSTEM FOR GIGFLOW
- * Centralized design tokens for consistency across the application
- */
 
-// Color Palette - Modern and professional
 export const colors = {
-  // Primary colors
+
   primary: {
     50: '#eff6ff',
     100: '#dbeafe',
@@ -18,7 +13,7 @@ export const colors = {
     800: '#1e40af',
     900: '#1e3a8a',
   },
-  // Semantic colors
+
   success: {
     50: '#f0fdf4',
     500: '#22c55e',
@@ -43,7 +38,7 @@ export const colors = {
     600: '#2563eb',
     700: '#1d4ed8',
   },
-  // Neutral colors
+
   neutral: {
     50: '#fafafa',
     100: '#f5f5f5',
@@ -56,7 +51,7 @@ export const colors = {
     800: '#424242',
     900: '#212121',
   },
-  // Gradients
+
   gradient: {
     primary: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
     success: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
@@ -64,14 +59,13 @@ export const colors = {
   },
 };
 
-// Typography
 export const typography = {
-  // Font families
+
   fontFamily: {
     sans: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     mono: '"Menlo", "Monaco", "Courier New", monospace',
   },
-  // Font sizes
+
   fontSize: {
     xs: '0.75rem',      // 12px
     sm: '0.875rem',     // 14px
@@ -83,7 +77,7 @@ export const typography = {
     '4xl': '2.25rem',   // 36px
     '5xl': '3rem',      // 48px
   },
-  // Font weights
+
   fontWeight: {
     light: 300,
     normal: 400,
@@ -92,14 +86,14 @@ export const typography = {
     bold: 700,
     extrabold: 800,
   },
-  // Line heights
+
   lineHeight: {
     tight: 1.2,
     normal: 1.5,
     relaxed: 1.75,
     loose: 2,
   },
-  // Letter spacing
+  
   letterSpacing: {
     tight: '-0.02em',
     normal: '0em',
@@ -108,7 +102,7 @@ export const typography = {
   },
 };
 
-// Spacing (8px base)
+
 export const spacing = {
   0: '0',
   1: '0.25rem',    // 4px
@@ -123,7 +117,7 @@ export const spacing = {
   16: '4rem',      // 64px
 };
 
-// Border radius
+
 export const borderRadius = {
   none: '0',
   sm: '0.25rem',   // 4px
@@ -135,7 +129,6 @@ export const borderRadius = {
   full: '9999px',
 };
 
-// Shadows
 export const shadows = {
   none: 'none',
   xs: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
@@ -147,14 +140,14 @@ export const shadows = {
   '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
 };
 
-// Transitions
+
 export const transitions = {
   fast: '150ms cubic-bezier(0.4, 0, 0.2, 1)',
   base: '250ms cubic-bezier(0.4, 0, 0.2, 1)',
   slow: '350ms cubic-bezier(0.4, 0, 0.2, 1)',
 };
 
-// Breakpoints
+
 export const breakpoints = {
   sm: '640px',
   md: '768px',
@@ -163,7 +156,7 @@ export const breakpoints = {
   '2xl': '1536px',
 };
 
-// Z-index scale
+
 export const zIndex = {
   dropdown: 1000,
   sticky: 1020,
