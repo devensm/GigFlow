@@ -135,3 +135,54 @@ export const getMyBids = async (req, res) => {
   }
 };
 
+// Update a bid (freelancer only)
+export const updateBid = async (req, res) => {
+  try {
+    const { message, price } = req.body;
+    const bid = await Bid.findById(req.params.id);
+
+    if (!bid) return res.status(404).json({ message: "Bid not found" });
+
+    // Only freelancer can edit
+    if (bid.freelancer.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    // Cannot edit after decision
+    if (bid.status !== "pending") {
+      return res.status(400).json({ message: "Cannot edit this bid anymore" });
+    }
+
+    bid.message = message || bid.message;
+    bid.price = price || bid.price;
+
+    await bid.save();
+    res.json(bid);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete a bid (freelancer only)
+export const deleteBid = async (req, res) => {
+  try {
+    const bid = await Bid.findById(req.params.id);
+
+    if (!bid) return res.status(404).json({ message: "Bid not found" });
+
+    // Only freelancer can delete
+    if (bid.freelancer.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    // Cannot delete after decision
+    if (bid.status !== "pending") {
+      return res.status(400).json({ message: "Cannot delete this bid anymore" });
+    }
+
+    await bid.deleteOne();
+    res.json({ message: "Bid deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

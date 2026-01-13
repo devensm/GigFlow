@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import StatusBadge from "../components/StatusBadge";
+
 
 const MyBids = () => {
   const [bids, setBids] = useState([]);
@@ -21,6 +23,38 @@ const MyBids = () => {
     fetchMyBids();
   }, []);
 
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Delete this bid?");
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/bids/${id}`);
+      setBids((prev) => prev.filter((b) => b._id !== id));
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete bid");
+    }
+  };
+
+  const handleEdit = async (bid) => {
+    const newMessage = prompt("Edit your message:", bid.message);
+    const newPrice = prompt("Edit your price:", bid.price);
+
+    if (!newMessage || !newPrice) return;
+
+    try {
+      const res = await api.put(`/bids/${bid._id}`, {
+        message: newMessage,
+        price: newPrice,
+      });
+
+      setBids((prev) =>
+        prev.map((b) => (b._id === bid._id ? res.data : b))
+      );
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update bid");
+    }
+  };
+
   return (
     <div className="pt-20 p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">My Bids</h1>
@@ -29,7 +63,10 @@ const MyBids = () => {
       {error && <p className="text-red-600">{error}</p>}
 
       {!loading && bids.length === 0 && (
-        <p className="text-gray-500">You haven’t placed any bids yet.</p>
+        <div className="text-center text-gray-500">
+            <p className="text-lg">No bids yet</p>
+            <p className="text-sm">Start bidding on open gigs</p>
+        </div>
       )}
 
       <div className="space-y-4">
@@ -39,28 +76,34 @@ const MyBids = () => {
             className="border p-4 rounded shadow flex justify-between items-center"
           >
             <div>
-              <h2 className="font-semibold">{bid.gig.title}</h2>
-              <p className="text-gray-600">Budget: ₹{bid.gig.budget}</p>
+              <h2 className="font-semibold">
+                {bid.gig?.title || "Gig no longer exists"}
+                </h2>
+              <p className="text-gray-600">Your Message: {bid.message}</p>
               <p className="text-gray-600">Your Price: ₹{bid.price}</p>
               <p className="text-sm mt-1">
                 Status:{" "}
-                <span
-                  className={
-                    bid.status === "hired"
-                      ? "text-green-600"
-                      : bid.status === "rejected"
-                      ? "text-red-600"
-                      : "text-gray-600"
-                  }
-                >
-                  {bid.status}
-                </span>
+                  <StatusBadge status={bid.status} />
               </p>
             </div>
 
-            <div className="text-sm text-gray-500">
-              Gig Status: {bid.gig.status}
-            </div>
+            {bid.status === "pending" && (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => handleEdit(bid)}
+                  className="text-blue-600"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() => handleDelete(bid._id)}
+                  className="text-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

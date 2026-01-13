@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import StatusBadge from "../components/StatusBadge";
 
 const Dashboard = () => {
   const [gigs, setGigs] = useState([]);
@@ -81,18 +82,7 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">
                   Budget: ₹{gig.budget}
                 </p>
-                <p className="text-sm">
-                  Status:{" "}
-                  <span
-                    className={
-                      gig.status === "assigned"
-                        ? "text-green-600"
-                        : "text-gray-600"
-                    }
-                  >
-                    {gig.status}
-                  </span>
-                </p>
+                <StatusBadge status={gig.status} />
               </div>
             ))}
           </div>
@@ -124,20 +114,7 @@ const Dashboard = () => {
                   <p className="font-semibold">{bid.freelancer.name}</p>
                   <p className="text-gray-600">{bid.message}</p>
                   <p className="font-bold">₹{bid.price}</p>
-                  <p className="text-sm">
-                    Status:{" "}
-                    <span
-                      className={
-                        bid.status === "hired"
-                          ? "text-green-600"
-                          : bid.status === "rejected"
-                          ? "text-red-600"
-                          : "text-gray-600"
-                      }
-                    >
-                      {bid.status}
-                    </span>
-                  </p>
+                  <StatusBadge status={bid.status} />
                 </div>
 
                 {bid.status === "pending" && (

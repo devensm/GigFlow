@@ -5,6 +5,7 @@ import {
   searchGigs,
   getGigById,
   getMyGigs,
+  deleteGig,
 } from "../controllers/gigController.js";
 import protect from "../middleware/authMiddleware.js";
 
@@ -14,7 +15,10 @@ router.post("/", protect, createGig);
 router.get("/", getGigs);
 router.get("/search", searchGigs);
 router.get("/my", protect, getMyGigs);
+router.delete("/:id", protect, deleteGig);
 router.get("/:id", getGigById);
+
+
 
 
 

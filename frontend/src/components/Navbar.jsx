@@ -1,99 +1,68 @@
+import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
   return (
-    <nav className="fixed top-0 left-0 w-full z-[9999] bg-white shadow-md px-6 py-4">
-      <div className="grid grid-cols-3 items-center">
-        
-        {/* Left: Logo */}
-        <div className="flex justify-start">
-          <button
-            onClick={() => navigate("/")}
-            className="font-bold text-xl cursor-pointer"
-          >
-            GigFlow
-          </button>
-        </div>
+    <nav className="fixed top-0 w-full bg-white shadow z-50">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Logo */}
+        <Link to="/" className="font-bold text-xl">
+          GigFlow
+        </Link>
 
-        {/* Center: Navigation */}
-        <div className="flex justify-center gap-6 pointer-events-auto">
-          <button
-            onClick={() => navigate("/gigs")}
-            className="cursor-pointer hover:text-blue-600"
-          >
+        {/* Center Nav */}
+        <div className="flex gap-6 items-center">
+          <Link to="/gigs" className="hover:text-blue-600">
             Browse Gigs
-          </button>
+          </Link>
 
           {user && (
-            <button
-              onClick={() => navigate("/create")}
-              className="cursor-pointer hover:text-blue-600"
-            >
-              Post a Gig
-            </button>
-          )}
+            <>
+              <Link to="/create" className="hover:text-blue-600">
+                Post a Gig
+              </Link>
 
-          {user && (
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="cursor-pointer hover:text-blue-600"
-            >
-              Dashboard
-            </button>
-          )}
-
-          {user && (
-            <button
-                onClick={() => navigate("/my-bids")}
-                className="cursor-pointer hover:text-blue-600"
-            >
-                My Bids
-            </button>
-        )}
-
-        {user && (
-            <button
-                onClick={() => navigate("/my-gigs")}
-                className="cursor-pointer hover:text-blue-600"
-            >
+              <Link to="/my-gigs" className="hover:text-blue-600">
                 My Gigs
-            </button>
-        )}
+              </Link>
 
+              <Link to="/my-bids" className="hover:text-blue-600">
+                My Bids
+              </Link>
+
+              <Link to="/dashboard" className="hover:text-blue-600">
+                Dashboard
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* Right: Auth */}
-        <div className="flex justify-end">
+        {/* Right Side */}
+        <div className="flex gap-4 items-center">
           {!user ? (
-            <div className="flex gap-4">
-              <button
-                onClick={() => navigate("/login")}
-                className="cursor-pointer hover:text-blue-600"
-              >
+            <>
+              <Link to="/login" className="hover:text-blue-600">
                 Login
-              </button>
-
-              <button
-                onClick={() => navigate("/register")}
-                className="cursor-pointer hover:text-blue-600"
-              >
+              </Link>
+              <Link to="/register" className="hover:text-blue-600">
                 Register
-              </button>
-            </div>
+              </Link>
+            </>
           ) : (
             <button
-                onClick={async () => {
-                    await logout();
-                    navigate("/login");
-                }}
-                className="text-red-500 cursor-pointer"
-                >
-                Logout
+              onClick={handleLogout}
+              className="text-red-500 hover:underline"
+            >
+              Logout
             </button>
           )}
         </div>

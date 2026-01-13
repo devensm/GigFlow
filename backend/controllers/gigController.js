@@ -77,3 +77,32 @@ export const getMyGigs = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Delete a gig (owner only)
+export const deleteGig = async (req, res) => {
+  try {
+    const gig = await Gig.findById(req.params.id);
+
+    if (!gig) {
+      return res.status(404).json({ message: "Gig not found" });
+    }
+
+    // Only owner can delete
+    if (gig.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    // Optional: prevent deleting assigned gigs
+    if (gig.status === "assigned") {
+      return res
+        .status(400)
+        .json({ message: "Cannot delete an assigned gig" });
+    }
+
+    await gig.deleteOne();
+    res.json({ message: "Gig deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
