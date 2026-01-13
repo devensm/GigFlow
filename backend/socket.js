@@ -6,13 +6,13 @@ const onlineUsers = new Map();
 export const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
+      origin: ["https://gigflow-frontend-0su9.onrender.com"],
       credentials: true,
     },
   });
 
   io.on("connection", (socket) => {
-    console.log("⚡ User connected:", socket.id);
+    console.log("User connected:", socket.id);
 
     socket.on("register", (userId) => {
       onlineUsers.set(userId, socket.id);
@@ -20,7 +20,7 @@ export const initSocket = (server) => {
     });
 
     socket.on("disconnect", () => {
-      console.log("❌ User disconnected:", socket.id);
+      console.log("User disconnected:", socket.id);
       for (let [userId, sockId] of onlineUsers.entries()) {
         if (sockId === socket.id) {
           onlineUsers.delete(userId);
