@@ -82,7 +82,7 @@ const Register = () => {
             label="Full Name"
             type="text"
             name="name"
-            placeholder="John Doe"
+            placeholder="abc"
             value={formData.name}
             onChange={handleChange}
             error={errors.name}
@@ -95,7 +95,7 @@ const Register = () => {
             label="Email Address"
             type="email"
             name="email"
-            placeholder="you@example.com"
+            placeholder="you@gmail.com"
             value={formData.email}
             onChange={handleChange}
             error={errors.email}

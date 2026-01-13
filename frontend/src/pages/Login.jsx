@@ -79,7 +79,7 @@ const Login = () => {
             label="Email Address"
             type="email"
             name="email"
-            placeholder="you@example.com"
+            placeholder="you@gmail.com"
             value={formData.email}
             onChange={handleChange}
             error={errors.email}
